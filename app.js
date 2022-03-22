@@ -10,14 +10,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
+app.use((req, res, next) => {
+  req.user = {
+    _id: '623899f716062f19a906454f' // вставьте сюда _id созданного в предыдущем пункте пользователя
+  };
+  next();
+});
 
 app.use('/users', require('./routes/users'));
-/*app.use('/directors', require('./routes/directors'));*/
+app.use('/cards', require('./routes/cards'));
 
-/*app.get('/', (req, res) => {
-  res.send('Hello World!')
-})*/
 
 app.listen(PORT, () => {
-  console.log('Ссылка на сервер');
+  console.log(`Сервер запущен, на ${PORT} порт`);
 });
