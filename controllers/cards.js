@@ -2,7 +2,7 @@ const Card = require('../models/card');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .populate('owner')
+    .populate(['owner','likes'])
     .then(card => res.send({data: card}))
     .catch(err => res.status(500).send({message: err.message}));
 };
@@ -19,10 +19,23 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then(card => res.send({data: card}))
-    .catch(() => res.status(500).send({message: 'Произошла ошибка удаления карты'}));
+    .catch(() => res.status(404).send({message: 'карточка или пользователь не найден'}));
 }
 
-/*
-router.get('/', getCards);
-router.post('/', createCard);
-router.delete('/', deleteCard);*/
+module.exports.likeCard = (req, res) => {
+  Card.findByIdAndUpdate(req.params.cardId,
+    {$addToSet: {likes: req.user._id}},
+    {new: true, runValidators: true})
+    .populate(['owner','likes'])
+    .then(card => res.send({data: card}))
+    .catch(() => res.status(404).send({message: 'карточка или пользователь не найден'}));
+}
+
+module.exports.dislikeCard = (req, res) => {
+  Card.findByIdAndUpdate(req.params.cardId,
+    {$pull: {likes: req.user._id}},
+    {new: true, runValidators: true})
+    .populate(['owner','likes'])
+    .then(card => res.send({data: card}))
+    .catch(() => res.status(404).send({message: 'карточка или пользователь не найден'}));
+}
