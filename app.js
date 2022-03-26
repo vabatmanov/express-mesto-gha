@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
-const {PORT = 3000} = process.env;
+const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(bodyParser.json());
@@ -10,21 +10,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-/*process.on('uncaughtException', (err, origin) => {
-  console.log(`${origin} ${err.name} c текстом ${err.message} не была обработана. Обратите внимание!`);
-});*/
-
 app.use((req, res, next) => {
   req.user = {
-    _id: '623899f716062f19a906454f'
+    _id: '623899f716062f19a906454f',
   };
   next();
 });
 
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
-app.use((req,res) => {
-  res.status(404).send({message: 'Указанный путь не существует'})
+
+app.use((req, res) => {
+  res.status(404).send({ message: 'Указанный путь не существует' });
 });
 
 app.listen(PORT, () => {
