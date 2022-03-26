@@ -29,11 +29,13 @@ module.exports.deleteCard = (req, res) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'ObjectNotFound') {
-        res.status(constants.NOT_FOUND).send({ message: `Карточка с указанным _id='${req.params.cardId}'не найдена` });
-      } else {
-        res.status(constants.SOME_ERROR).send({ message: err.message });
+      if (err.name === 'CastError') {
+        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: `Карточка с указанным _id='${req.params.cardId}' не найдена` });
       }
+      if (err.name === 'ObjectNotFound') {
+        return res.status(constants.NOT_FOUND).send({ message: `Карточка с указанным _id='${req.params.cardId}' не найдена` });
+      }
+      return res.status(constants.SOME_ERROR).send({ message: err.message });
     });
 };
 
