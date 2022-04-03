@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const errorHandler = require('./middlewares/errorHander');
 const {login, createUser} = require('./controllers/users');
 const auth = require('./middlewares/auth');
 
@@ -23,6 +24,8 @@ app.use('/cards', auth, require('./routes/cards'));
 app.use((req, res) => {
   res.status(404).send({ message: 'Указанный путь не существует' });
 });
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен, на ${PORT} порт`);
