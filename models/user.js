@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const {isEmail, isURL} = require('validator');
-const {Unauthorized} = require('../errors/ObjectNotFound');
+const Unauthorized = require('../errors/Unauthorized');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
@@ -48,7 +48,7 @@ userSchema.statics.findUserByCredentials = function (email, password) {
             return Promise.reject(new Unauthorized('Неправильные почта или пароль'));
           }
           return user;
-        });
+        })
     });
 };
 

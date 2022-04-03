@@ -1,20 +1,22 @@
 const User = require('../models/user');
 const constants = require('../utils/constants');
 const bcrypt = require('bcrypt');
-const {ObjectNotFound, ErrorConflict} = require('../errors/ObjectNotFound');
+const {ObjectNotFound} = require('../errors/ObjectNotFound');
+const ErrorConflict = require('../errors/ErrorConflict');
 const jwt = require('jsonwebtoken');
 
 
 module.exports.login = (req, res) => {
   const {email, password} = req.body;
 
-  return User.findUserByCredentials(email, password)
+  User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, constants.SECRET_KEY, { expiresIn: '7d' });
       res
         .cookie('jwt', token, {
           maxAge: 3600000 * 24 * 7,
-          httpOnly: true
+          httpOnly: true,
+          sameSite: true
         })
         .send({ message: 'Access token received' });
     })

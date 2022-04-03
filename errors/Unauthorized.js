@@ -1,5 +1,5 @@
 class Unauthorized extends Error {
-  constructor(message  = 'Произошел конфликт') {
+  constructor(message) {
     super(message);
     this.name = 'Unauthorized';
     this.statusCode = 401;
