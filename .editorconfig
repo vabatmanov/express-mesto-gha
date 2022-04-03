@@ -35,11 +35,14 @@ charset = utf-8
 # Denotes whether to trim whitespace at the end of lines
 
 # Possible values - true, false
-
+# было true
 trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
 
 # Denotes whether file should end with a newline
 
 # Possible values - true, false
-
-insert_final_newline = false
+# было false
+insert_final_newline = true
