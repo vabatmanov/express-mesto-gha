@@ -1,6 +1,7 @@
 const Card = require('../models/card');
 const constants = require('../utils/constants');
 const ObjectNotFound = require('../errors/ObjectNotFound');
+const AccessDenied = require('../errors/AccessDenied');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -23,11 +24,19 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(() => {
       throw new ObjectNotFound(`Карточка с указанным _id='${req.params.cardId}' не найдена`);
     })
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (!(card.owner.toString() === req.user._id)) {
+        throw new AccessDenied(`Попытка удалить чужую карточку`);
+      }
+      return Card.findByIdAndRemove(req.params.cardId)
+    })
+    .then((card) => {
+      res.send({data: card})
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: `Карточка с указанным _id='${req.params.cardId}' не найдена` });
@@ -35,7 +44,7 @@ module.exports.deleteCard = (req, res) => {
       if (err.name === 'ObjectNotFound') {
         return res.status(constants.NOT_FOUND).send({ message: `Карточка с указанным _id='${req.params.cardId}' не найдена` });
       }
-      return res.status(constants.SOME_ERROR).send({ message: err.message });
+      return res.status(err.statusCode || constants.SOME_ERROR).send({ message: err.message });
     });
 };
 
