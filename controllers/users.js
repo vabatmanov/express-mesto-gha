@@ -1,6 +1,8 @@
 const User = require('../models/user');
 const constants = require('../utils/constants');
+const bcrypt = require('bcrypt');
 const ObjectNotFound = require('../errors/ObjectNotFound');
+const ErrorConflict = require('../errors/ErrorConflict')
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -26,17 +28,31 @@ module.exports.getUserId = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
+  const {email, password, name, about, avatar } = req.body;
+  User.findOne({email})
+    .then((user) => {
+      if (user) {
+        throw new ErrorConflict(`Пользователь с таким email уже существует`);
+      }
+      return bcrypt.hash(password, constants.SALT_ROUNDS)
+    })
+    .then((hash) => {
+      return User.create({email, password: hash, name, about, avatar})
+    })
+    .then((user) => res.send({data: user}))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(constants.VALIDATION_ERROR_STATUS).send({ message: 'Переданы некорректные данные при создании пользователя' });
+        res.status(constants.VALIDATION_ERROR_STATUS).send({message: 'Переданы некорректные данные при создании пользователя'});
       } else {
-        res.status(constants.SOME_ERROR).send({ message: err.message });
+        res.status(err.statusCode || constants.SOME_ERROR).send({message: err.message});
       }
     });
+
+
+
+
 };
+
 
 module.exports.updateUserProfile = (req, res) => {
   const { name, about } = req.body;
