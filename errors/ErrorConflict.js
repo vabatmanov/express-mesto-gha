@@ -1,7 +1,7 @@
 class ErrorConflict extends Error {
   constructor(message  = 'Произошел конфликт') {
     super(message);
-    this.name = 'ObjectNotFound';
+    this.name = 'ErrorConflict';
     this.statusCode = 409;
   }
 }

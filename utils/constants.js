@@ -3,4 +3,5 @@ module.exports = Object.freeze({
   NOT_FOUND: 404,
   SOME_ERROR: 500,
   SALT_ROUNDS: 10, //Количество раундов соли для пароля
+  SECRET_KEY: 'secret-key'
 });

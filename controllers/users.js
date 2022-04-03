@@ -1,8 +1,37 @@
 const User = require('../models/user');
 const constants = require('../utils/constants');
 const bcrypt = require('bcrypt');
-const ObjectNotFound = require('../errors/ObjectNotFound');
-const ErrorConflict = require('../errors/ErrorConflict')
+const {ObjectNotFound, ErrorConflict, Unauthorized} = require('../errors/ObjectNotFound');
+const jwt = require('jsonwebtoken');
+
+
+module.exports.login = (req, res) => {
+  const {email, password} = req.body;
+
+  User.findOne({email})
+    .then((user) => {
+      if (!user) {
+        throw new Unauthorized('Неправильные почта или пароль');
+      }
+      req.user = {user};
+      return bcrypt.compare(password, user.password);
+    })
+    .then((matched) => {
+      if (!matched) {
+        throw new Unauthorized('Неправильные почта или пароль');
+      }
+      const token = jwt.sign({ _id: req.user._id }, constants.SECRET_KEY, { expiresIn: '7d' });
+      res
+        .cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true
+        })
+        .send({ message: 'Access token received' });
+    })
+    .catch((err) => {
+      res.status(err.statusCode || constants.SOME_ERROR).send({message: err.message});
+    })
+}
 
 module.exports.getUsers = (req, res) => {
   User.find({})
