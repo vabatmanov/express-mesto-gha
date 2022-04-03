@@ -25,6 +25,24 @@ module.exports.login = (req, res) => {
     });
 }
 
+module.exports.getUserInfo = (req, res) => {
+  User.findOne({_id: req.user._id})
+    .orFail(() => {
+      throw new ObjectNotFound(`Пользователь по указанному _id='${req.params.userId}' не найден`);
+    })
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: `Пользователь по указанному _id='${req.params.userId}' не найден` });
+      }
+      if (err.name === 'ObjectNotFound') {
+        return res.status(constants.NOT_FOUND).send({ message: `Пользователь по указанному _id='${req.params.userId}' не найден` });
+      }
+      return res.status(constants.SOME_ERROR).send({ message: err.message });
+    });
+
+}
+
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((user) => res.send({ data: user }))
