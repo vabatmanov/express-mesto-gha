@@ -1,12 +1,13 @@
 const User = require('../models/user');
 const constants = require('../utils/constants');
 const bcrypt = require('bcrypt');
-const {ObjectNotFound} = require('../errors/ObjectNotFound');
+const ObjectNotFound = require('../errors/ObjectNotFound');
 const ErrorConflict = require('../errors/ErrorConflict');
+const ErrorValidation = require('../errors/ErrorValidation');
 const jwt = require('jsonwebtoken');
 
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const {email, password} = req.body;
 
   User.findUserByCredentials(email, password)
@@ -21,11 +22,11 @@ module.exports.login = (req, res) => {
         .send({ message: 'Access token received' });
     })
     .catch((err) => {
-      res.status(err.statusCode || constants.SOME_ERROR).send({message: err.message});
+      next(err);
     });
 }
 
-module.exports.getUserInfo = (req, res) => {
+module.exports.getUserInfo = (req, res, next) => {
   User.findOne({_id: req.user._id})
     .orFail(() => {
       throw new ObjectNotFound(`Пользователь по указанному _id='${req.params.userId}' не найден`);
@@ -33,23 +34,24 @@ module.exports.getUserInfo = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: `Пользователь по указанному _id='${req.params.userId}' не найден` });
+        next(new ErrorValidation(`Пользователь по указанному _id='${req.params.userId}' не найден`));
+      } else {
+        next(err);
       }
-      if (err.name === 'ObjectNotFound') {
-        return res.status(constants.NOT_FOUND).send({ message: `Пользователь по указанному _id='${req.params.userId}' не найден` });
-      }
-      return res.status(constants.SOME_ERROR).send({ message: err.message });
+
     });
 
 }
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(constants.SOME_ERROR).send({ message: err.message }));
+    .catch((err) => {
+      next(err);
+    });
 };
 
-module.exports.getUserId = (req, res) => {
+module.exports.getUserId = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => {
       throw new ObjectNotFound(`Пользователь по указанному _id='${req.params.userId}' не найден`);
@@ -57,16 +59,15 @@ module.exports.getUserId = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: `Пользователь по указанному _id='${req.params.userId}' не найден` });
+        next(new ErrorValidation(`Пользователь по указанному _id='${req.params.userId}' не найден`));
+      } else {
+        next(err);
       }
-      if (err.name === 'ObjectNotFound') {
-        return res.status(constants.NOT_FOUND).send({ message: `Пользователь по указанному _id='${req.params.userId}' не найден` });
-      }
-      return res.status(constants.SOME_ERROR).send({ message: err.message });
+
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {email, password, name, about, avatar } = req.body;
   User.findOne({email})
     .then((user) => {
@@ -81,19 +82,16 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.send({data: user}))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(constants.VALIDATION_ERROR_STATUS).send({message: 'Переданы некорректные данные при создании пользователя'});
+        next(new ErrorValidation('Переданы некорректные данные при создании пользователя'));
       } else {
-        res.status(err.statusCode || constants.SOME_ERROR).send({message: err.message});
+        next(err);
       }
+
     });
-
-
-
 
 };
 
-
-module.exports.updateUserProfile = (req, res) => {
+module.exports.updateUserProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail(() => {
@@ -106,17 +104,15 @@ module.exports.updateUserProfile = (req, res) => {
       res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ObjectNotFound') {
-        return res.status(err.statusCode).send({ message: err.message });
-      }
       if (err.name === 'ValidationError') {
-        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+        next(new ErrorValidation('Переданы некорректные данные при обновлении профиля'));
+      } else {
+        next(err);
       }
-      return res.status(constants.SOME_ERROR).send({ message: err.message });
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(() => {
@@ -129,12 +125,11 @@ module.exports.updateUserAvatar = (req, res) => {
       res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ObjectNotFound') {
-        return res.status(err.statusCode).send({ message: err.message });
-      }
       if (err.name === 'ValidationError') {
-        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+        next(new ErrorValidation('Переданы некорректные данные при обновлении профиля'));
+      } else {
+        next(err);
       }
-      return res.status(constants.SOME_ERROR).send({ message: err.message });
+
     });
 };

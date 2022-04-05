@@ -1,36 +1,38 @@
 const Card = require('../models/card');
-const constants = require('../utils/constants');
 const ObjectNotFound = require('../errors/ObjectNotFound');
-const AccessDenied = require('../errors/AccessDenied');
+const ErrorAccessDenied = require('../errors/ErrorAccessDenied');
+const ErrorValidation = require('../errors/ErrorValidation');
 
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(constants.SOME_ERROR).send({ message: err.message }));
+    .catch((err) => {
+      next(err);
+    });
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(constants.VALIDATION_ERROR_STATUS).send({ message: 'Переданы некорректные данные при создании карточки' });
+        next(new ErrorValidation('Переданы некорректные данные при создании карточки'))
       } else {
-        res.status(constants.SOME_ERROR).send({ message: err.message });
+        next(err);
       }
     });
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(() => {
       throw new ObjectNotFound(`Карточка с указанным _id='${req.params.cardId}' не найдена`);
     })
     .then((card) => {
       if (!(card.owner.toString() === req.user._id)) {
-        throw new AccessDenied(`Попытка удалить чужую карточку`);
+        throw new ErrorAccessDenied(`Попытка удалить чужую карточку`);
       }
       return Card.findByIdAndRemove(req.params.cardId)
     })
@@ -39,16 +41,15 @@ module.exports.deleteCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: `Карточка с указанным _id='${req.params.cardId}' не найдена` });
+        next(new ObjectNotFound(`Карточка с указанным _id='${req.params.cardId}' не найдена`));
+      } else {
+        next(err);
       }
-      if (err.name === 'ObjectNotFound') {
-        return res.status(constants.NOT_FOUND).send({ message: `Карточка с указанным _id='${req.params.cardId}' не найдена` });
-      }
-      return res.status(err.statusCode || constants.SOME_ERROR).send({ message: err.message });
+
     });
 };
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .orFail(() => {
       throw new ObjectNotFound(`Передан несуществующий _id='${req.params.cardId}' карточки`);
@@ -61,17 +62,15 @@ module.exports.likeCard = (req, res) => {
       res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'ObjectNotFound') {
-        return res.status(err.statusCode).send({ message: err.message });
-      }
       if (err.name === 'CastError') {
-        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
+        next(new ErrorValidation('Переданы некорректные данные для постановки/снятии лайка'))
+      } else {
+        next(err);
       }
-      return res.status(constants.SOME_ERROR).send({ message: err.message });
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -88,12 +87,11 @@ module.exports.dislikeCard = (req, res) => {
       res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'ObjectNotFound') {
-        return res.status(err.statusCode).send({ message: err.message });
-      }
       if (err.name === 'CastError') {
-        return res.status(constants.VALIDATION_ERROR_STATUS).send({ message: 'Переданы некорректные данные для постановки/снятии лайка' });
+        next(new ErrorValidation('Переданы некорректные данные для постановки/снятии лайка'))
+      } else {
+        next(err);
       }
-      return res.status(constants.SOME_ERROR).send({ message: err.message });
+
     });
 };
