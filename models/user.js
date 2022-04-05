@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {isEmail, isURL} = require('validator');
+const {isEmail} = require('validator');
 const Unauthorized = require('../errors/Unauthorized');
 const bcrypt = require('bcrypt');
 
@@ -32,10 +32,10 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-    validate: [isURL, 'invalid avatar URL']
+    validate: [(avatar) => {return /((https?:\/{2})|(w{3}\.))[\/\w-.#~:?\[\]@!$&'()*+,;=]+/g.test(avatar)}, 'invalid avatar URL']
   },
 });
-
+//(data) => {console.log ('/https?:\/{2}(?:[\/-\w.#]|(?:%[\da-fA-F]{2}))+/g`'.test(data))}
 userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
