@@ -4,5 +4,6 @@ const errorHandler = (err, req, res, next) => { // тут возможно по�
   res.status(status).send({
     message: err.message,
   });
+  next();
 };
 module.exports = errorHandler;
