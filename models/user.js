@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
     validate: [(avatar) => {return /((https?:\/{2})|(w{3}\.))[\/\w-.#~:?\[\]@!$&'()*+,;=]+/g.test(avatar)}, 'invalid avatar URL']
   },
 });
-//(data) => {console.log ('/https?:\/{2}(?:[\/-\w.#]|(?:%[\da-fA-F]{2}))+/g`'.test(data))}
+
 userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
