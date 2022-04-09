@@ -18,7 +18,7 @@ module.exports.createCard = (req, res, next) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ErrorValidation('Переданы некорректные данные при создании карточки'))
+        next(new ErrorValidation('Переданы некорректные данные при создании карточки'));
       } else {
         next(err);
       }
@@ -32,12 +32,12 @@ module.exports.deleteCard = (req, res, next) => {
     })
     .then((card) => {
       if (!(card.owner.toString() === req.user._id)) {
-        throw new ErrorAccessDenied(`Попытка удалить чужую карточку`);
+        throw new ErrorAccessDenied('Попытка удалить чужую карточку');
       }
-      return Card.findByIdAndRemove(req.params.cardId)
+      return Card.findByIdAndRemove(req.params.cardId);
     })
     .then((card) => {
-      res.send({data: card})
+      res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -45,7 +45,6 @@ module.exports.deleteCard = (req, res, next) => {
       } else {
         next(err);
       }
-
     });
 };
 
@@ -63,7 +62,7 @@ module.exports.likeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ErrorValidation('Переданы некорректные данные для постановки/снятии лайка'))
+        next(new ErrorValidation('Переданы некорректные данные для постановки/снятии лайка'));
       } else {
         next(err);
       }
@@ -88,10 +87,9 @@ module.exports.dislikeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ErrorValidation('Переданы некорректные данные для постановки/снятии лайка'))
+        next(new ErrorValidation('Переданы некорректные данные для постановки/снятии лайка'));
       } else {
         next(err);
       }
-
     });
 };

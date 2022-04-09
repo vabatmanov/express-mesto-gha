@@ -2,11 +2,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const errorHandler = require('./middlewares/errorHandler');
-const {login, createUser} = require('./controllers/users');
-const {loginValidation, regValidation} = require('./middlewares/validations');
-const auth = require('./middlewares/auth');
 const { errors } = require('celebrate');
+const errorHandler = require('./middlewares/errorHandler');
+const { login, createUser } = require('./controllers/users');
+const { loginValidation, regValidation } = require('./middlewares/validations');
+const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -17,8 +17,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-app.post('/signin',loginValidation , login);
-app.post('/signup',regValidation , createUser);
+app.post('/signin', loginValidation, login);
+app.post('/signup', regValidation, createUser);
 
 app.use('/users', auth, require('./routes/users'));
 app.use('/cards', auth, require('./routes/cards'));

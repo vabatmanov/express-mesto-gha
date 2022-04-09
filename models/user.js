@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-const {isEmail} = require('validator');
-const Unauthorized = require('../errors/Unauthorized');
+const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
+const Unauthorized = require('../errors/Unauthorized');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -10,29 +10,29 @@ const userSchema = new mongoose.Schema({
     maxlength: 30,
     required: true,
     unique: true,
-    validate: [isEmail, 'invalid email']
+    validate: [isEmail, 'invalid email'],
   },
   password: {
     type: String,
     required: true,
-    select: false
+    select: false,
   },
   name: {
     type: String,
     minlength: 2,
     maxlength: 30,
-    default: 'Жак-Ив Кусто'
+    default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
     minlength: 2,
     maxlength: 30,
-    default: 'Исследователь'
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-    validate: [(avatar) => {return /((https?:\/{2})|(w{3}\.))[\/\w-.#~:?\[\]@!$&'()*+,;=]+/g.test(avatar)}, 'invalid avatar URL']
+    validate: [(avatar) => /((https?:\/{2})|(w{3}\.))[/\w-.#~:?[\]@!$&'()*+,;=]+/g.test(avatar), 'invalid avatar URL'],
   },
 });
 
@@ -49,7 +49,7 @@ userSchema.statics.findUserByCredentials = function (email, password) {
             return Promise.reject(new Unauthorized('Неправильные почта или пароль'));
           }
           return user;
-        })
+        });
     });
 };
 

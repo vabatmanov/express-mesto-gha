@@ -1,14 +1,13 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const constants = require('../utils/constants');
-const bcrypt = require('bcrypt');
 const ObjectNotFound = require('../errors/ObjectNotFound');
 const ErrorConflict = require('../errors/ErrorConflict');
 const ErrorValidation = require('../errors/ErrorValidation');
-const jwt = require('jsonwebtoken');
-
 
 module.exports.login = (req, res, next) => {
-  const {email, password} = req.body;
+  const { email, password } = req.body;
 
   User.findUserByCredentials(email, password)
     .then((user) => {
@@ -17,17 +16,17 @@ module.exports.login = (req, res, next) => {
         .cookie('jwt', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
-          sameSite: true
+          sameSite: true,
         })
         .send({ message: 'Access token received' });
     })
     .catch((err) => {
       next(err);
     });
-}
+};
 
 module.exports.getUserInfo = (req, res, next) => {
-  User.findOne({_id: req.user._id})
+  User.findOne({ _id: req.user._id })
     .orFail(() => {
       throw new ObjectNotFound(`Пользователь по указанному _id='${req.params.userId}' не найден`);
     })
@@ -38,10 +37,8 @@ module.exports.getUserInfo = (req, res, next) => {
       } else {
         next(err);
       }
-
     });
-
-}
+};
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -63,32 +60,31 @@ module.exports.getUserId = (req, res, next) => {
       } else {
         next(err);
       }
-
     });
 };
 
 module.exports.createUser = (req, res, next) => {
-  const {email, password, name, about, avatar } = req.body;
-  User.findOne({email})
+  const {
+    email, password, name, about, avatar,
+  } = req.body;
+  User.findOne({ email })
     .then((user) => {
       if (user) {
-        throw new ErrorConflict(`Пользователь с таким email уже существует`);
+        throw new ErrorConflict('Пользователь с таким email уже существует');
       }
-      return bcrypt.hash(password, constants.SALT_ROUNDS)
+      return bcrypt.hash(password, constants.SALT_ROUNDS);
     })
-    .then((hash) => {
-      return User.create({email, password: hash, name, about, avatar})
-    })
-    .then((user) => res.send({data: user}))
+    .then((hash) => User.create({
+      email, password: hash, name, about, avatar,
+    }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ErrorValidation('Переданы некорректные данные при создании пользователя'));
       } else {
         next(err);
       }
-
     });
-
 };
 
 module.exports.updateUserProfile = (req, res, next) => {
@@ -130,6 +126,5 @@ module.exports.updateUserAvatar = (req, res, next) => {
       } else {
         next(err);
       }
-
     });
 };

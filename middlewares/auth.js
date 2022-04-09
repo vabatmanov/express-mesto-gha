@@ -3,7 +3,6 @@ const constants = require('../utils/constants');
 const Unauthorized = require('../errors/Unauthorized');
 
 module.exports = (req, res, next) => {
-
   if (!req.cookies.jwt) {
     next(new Unauthorized('Необходима авторизация'));
     return;
