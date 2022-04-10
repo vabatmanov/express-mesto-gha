@@ -28,12 +28,12 @@ module.exports.login = (req, res, next) => {
 module.exports.getUserInfo = (req, res, next) => {
   User.findOne({ _id: req.user._id })
     .orFail(() => {
-      throw new ObjectNotFound(`Пользователь по указанному _id='${req.params.userId}' не найден`);
+      throw new ObjectNotFound(`Пользователь по указанному _id='${req.user._id}' не найден`);
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ErrorValidation(`Пользователь по указанному _id='${req.params.userId}' не найден`));
+        next(new ErrorValidation(`Пользователь по указанному _id='${req.user._id}' не найден`));
       } else {
         next(err);
       }
@@ -94,9 +94,6 @@ module.exports.updateUserProfile = (req, res, next) => {
       throw new ObjectNotFound(`Пользователь с указанным _id='${req.params.userId}' не найден`);
     })
     .then((user) => {
-      if (!user) {
-        throw new ObjectNotFound(`Пользователь с указанным _id='${req.params.userId}' не найден`);
-      }
       res.send({ data: user });
     })
     .catch((err) => {
@@ -115,9 +112,6 @@ module.exports.updateUserAvatar = (req, res, next) => {
       throw new ObjectNotFound(`Пользователь с указанным _id='${req.params.userId}' не найден`);
     })
     .then((user) => {
-      if (!user) {
-        throw new ObjectNotFound(`Пользователь с указанным _id='${req.params.userId}' не найден`);
-      }
       res.send({ data: user });
     })
     .catch((err) => {

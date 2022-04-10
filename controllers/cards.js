@@ -55,9 +55,6 @@ module.exports.likeCard = (req, res, next) => {
     })
     .populate(['owner', 'likes'])
     .then((card) => {
-      if (!card) {
-        throw new ObjectNotFound(`Передан несуществующий _id='${req.params.cardId}' карточки`);
-      }
       res.send({ data: card });
     })
     .catch((err) => {
@@ -80,9 +77,6 @@ module.exports.dislikeCard = (req, res, next) => {
     })
     .populate(['owner', 'likes'])
     .then((card) => {
-      if (!card) {
-        throw new ObjectNotFound(`Передан несуществующий _id='${req.params.cardId}' карточки`);
-      }
       res.send({ data: card });
     })
     .catch((err) => {

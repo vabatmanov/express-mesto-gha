@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
+const ObjectNotFound = require('./errors/ObjectNotFound');
 const errorHandler = require('./middlewares/errorHandler');
 const { login, createUser } = require('./controllers/users');
 const { loginValidation, regValidation } = require('./middlewares/validations');
@@ -23,8 +24,8 @@ app.post('/signup', regValidation, createUser);
 app.use('/users', auth, require('./routes/users'));
 app.use('/cards', auth, require('./routes/cards'));
 
-app.use((req, res) => {
-  res.status(404).send({ message: 'Указанный путь не существует' });
+app.use(auth, (req, res, next) => {
+  next(new ObjectNotFound('Указанный путь не существует'));
 });
 
 app.use(errors());
